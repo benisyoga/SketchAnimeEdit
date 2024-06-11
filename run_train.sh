@@ -9,7 +9,7 @@ python train.py \
 --multi_gpu False \
 --gpu_ids '0' \
 --cudnn_benchmark False \
---checkpoint_interval 1 \
+--checkpoint_interval 50 \
 --load_name '' \
 --epochs 1000 \
 --batch_size 1 \
@@ -24,7 +24,7 @@ python train.py \
 --lambda_gan 1 \
 --lambda_BMR 10 \
 --lambda_KP 0 \
---lambda_perceptual 0.1 \
+--lambda_perceptual 1 \
 --num_workers 0 \
 --in_channels 4 \
 --out_channels 3 \
@@ -35,6 +35,7 @@ python train.py \
 --init_type 'kaiming' \
 --init_gain 0.02 \
 --baseroot 'C:/Users/owner/program_myself/pytorch_study/SketchAnimeEdit' \
---img_path './dataset' \
+--train_img_path './dataset' \
+--test_img_path './test_dataset' \
 --img_height 256 \
 --img_width 256 \

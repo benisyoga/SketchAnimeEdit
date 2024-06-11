@@ -101,22 +101,23 @@ def tester(opt):
             mask_out = (mask_out>0.5).float()
             first_out, second_out = net_G(input, mask_out, Sketch)
 
-        # forward propagation
-        first_out_wholeimg = input * (1 - mask_out) + first_out * mask_out        # in range [0, 1]
-        second_out_wholeimg = input * (1 - mask_out) + second_out * mask_out      # in range [0, 1]
+            # forward propagation
+            first_out_wholeimg = input * (1 - mask_out) + first_out * mask_out        # in range [0, 1]
+            second_out_wholeimg = input * (1 - mask_out) + second_out * mask_out      # in range [0, 1]
 
-        noise = torch.rand(opt.batch_size, 3, opt.img_height, opt.img_width).cuda()
-        masked_img = input * (1 - mask_out) + noise * mask_out
-        mask_out = torch.cat((mask_out, mask_out, mask_out), 1)
+            noise = torch.rand(opt.batch_size, 3, opt.img_height, opt.img_width).cuda()
+            masked_img = input * (1 - mask_out) + noise * mask_out
+            mask_out = torch.cat((mask_out, mask_out, mask_out), 1)
 
-        img_list = [truth, mask_out, masked_img, first_out_wholeimg, second_out_wholeimg]
-        name_list = ['truth','mask_out', 'masked_img', 'first_out', 'second_out']
-        utils.save_sample_png(sample_folder = opt.results_path, sample_name = '%d' % (batch_idx + 1), img_list = img_list, name_list = name_list, pixel_max_cnt = 255)
-        print('----------------------batch_idx%d' % (batch_idx + 1) + ' has been finished----------------------')
+            img_list = [truth, mask_out, masked_img, first_out, first_out_wholeimg, second_out, second_out_wholeimg]
+            name_list = ['truth','mask_out', 'masked_img', 'first_out', 'first_out_whole', 'second_out', 'second_out_whole']
+            utils.save_sample_png(sample_folder = opt.results_path, sample_name = '%d' % (batch_idx + 1), img_list = img_list, name_list = name_list, pixel_max_cnt = 255)
+            print('----------------------batch_idx%d' % (batch_idx + 1) + ' has been finished----------------------')
 
-        score_L1 = L1(second_out_wholeimg, truth).item()
-        score_PSNR = psnr(second_out_wholeimg, truth)
-        score_SSIM = ssim(second_out_wholeimg, truth)
+            score_L1 = L1(second_out_wholeimg, truth).item()
+            score_PSNR = psnr(second_out_wholeimg, truth)
+            score_SSIM = ssim(second_out_wholeimg, truth)
+        
 
         total_L1 += score_L1
         total_PSNR += score_PSNR

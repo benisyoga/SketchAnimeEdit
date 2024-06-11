@@ -89,16 +89,16 @@ class MaskEstimator(nn.Module):
         )
 
         #U-Net
-        self.TCB1 = TwoConvBlock(opt.in_channels + 1,      opt.latent_channels,      3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
-        self.TCB2 = TwoConvBlock(opt.latent_channels,      opt.latent_channels * 2,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
-        self.TCB3 = TwoConvBlock(opt.latent_channels * 2,  opt.latent_channels * 4,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
-        self.TCB4 = TwoConvBlock(opt.latent_channels * 4,  opt.latent_channels * 8,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
-        self.TCB5 = TwoConvBlock(opt.latent_channels * 8,  opt.latent_channels * 16, 3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
+        self.TCB1 = TwoConvBlock(opt.in_channels + 1,      opt.latent_channels,      3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
+        self.TCB2 = TwoConvBlock(opt.latent_channels,      opt.latent_channels * 2,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
+        self.TCB3 = TwoConvBlock(opt.latent_channels * 2,  opt.latent_channels * 4,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
+        self.TCB4 = TwoConvBlock(opt.latent_channels * 4,  opt.latent_channels * 8,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
+        self.TCB5 = TwoConvBlock(opt.latent_channels * 8,  opt.latent_channels * 16, 3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
 
-        self.TCB6 = TwoConvBlock(opt.latent_channels * 16, opt.latent_channels * 8,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
-        self.TCB7 = TwoConvBlock(opt.latent_channels * 8,  opt.latent_channels * 4,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
-        self.TCB8 = TwoConvBlock(opt.latent_channels * 4,  opt.latent_channels * 2,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
-        self.TCB9 = TwoConvBlock(opt.latent_channels * 2,  opt.latent_channels,      3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
+        self.TCB6 = TwoConvBlock(opt.latent_channels * 16, opt.latent_channels * 8,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
+        self.TCB7 = TwoConvBlock(opt.latent_channels * 8,  opt.latent_channels * 4,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
+        self.TCB8 = TwoConvBlock(opt.latent_channels * 4,  opt.latent_channels * 2,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
+        self.TCB9 = TwoConvBlock(opt.latent_channels * 2,  opt.latent_channels,      3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
         self.conv = nn.Conv2d(opt.latent_channels, 1, kernel_size = 3, stride = 1, padding = 1)
         self.maxpool = nn.MaxPool2d(2, stride = 2)
         
@@ -107,10 +107,10 @@ class MaskEstimator(nn.Module):
         self.UC3 = UpConv(opt.latent_channels * 4,  opt.latent_channels * 2) 
         self.UC4 = UpConv(opt.latent_channels * 2,  opt.latent_channels)
 
-        self.TCB6_mg  = TwoConvBlock(opt.latent_channels * 16,  opt.latent_channels * 8,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
-        self.TCB7_mg  = TwoConvBlock(opt.latent_channels * 8,   opt.latent_channels * 4,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
-        self.TCB8_mg  = TwoConvBlock(opt.latent_channels * 4,   opt.latent_channels * 2,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
-        self.TCB9_mg  = TwoConvBlock(opt.latent_channels * 2,   opt.latent_channels    ,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = 'gn')
+        self.TCB6_mg  = TwoConvBlock(opt.latent_channels * 16,  opt.latent_channels * 8,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
+        self.TCB7_mg  = TwoConvBlock(opt.latent_channels * 8,   opt.latent_channels * 4,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
+        self.TCB8_mg  = TwoConvBlock(opt.latent_channels * 4,   opt.latent_channels * 2,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
+        self.TCB9_mg  = TwoConvBlock(opt.latent_channels * 2,   opt.latent_channels    ,  3, 1, 1, pad_type = opt.pad_type, activation = opt.activation, norm = opt.norm)
         self.conv_mg = nn.Conv2d(opt.latent_channels, opt.out_channels, kernel_size = 3, stride = 1, padding = 1)
 
         self.UC1_mg = UpConv(opt.latent_channels * 16, opt.latent_channels * 8) 
@@ -130,6 +130,7 @@ class MaskEstimator(nn.Module):
         '''マスク推定'''
         #'''
         x = torch.cat((img, mask, sketch), dim=1)
+        #x = torch.cat((img, sketch), dim=1)
 
         x1 = self.TCB1(x)
         p1 = self.maxpool(x1)
@@ -179,11 +180,12 @@ class MaskEstimator(nn.Module):
 
         mask_nw = self.mask_encoder(mask_in)
         mask_nw = self.mask_bottleneck(mask_nw)
+        mask_ny = mask_nw
 
         mask_out = self.mask_decoder1(mask_nw)
         mask_out = F.interpolate(mask_out, (img.shape[2], img.shape[3]))
 
-        mg_img_out = self.mask_decoder2(mask_nw)
+        mg_img_out = self.mask_decoder2(mask_ny)
         mg_img_out = F.interpolate(mg_img_out, (img.shape[2], img.shape[3]))
         #'''
 

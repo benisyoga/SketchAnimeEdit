@@ -1,11 +1,11 @@
 python test.py \
 --baseroot 'C:/Users/owner/program_myself/pytorch_study/SketchAnimeEdit' \
---img_path './test_data' \
---saved_path './saved_paths/kison' \
+--test_img_path './test_dataset' \
+--saved_path './saved_paths' \
 --results_path './results' \
 --gan_type 'WGAN' \
 --gpu_ids '1' \
---epoch 1000 \
+--epoch 160 \
 --batch_size 1 \
 --num_workers 0 \
 --pad_type 'zero' \

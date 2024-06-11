@@ -27,7 +27,7 @@ if __name__ == "__main__":
     parser.add_argument('--init_gain', type = float, default = 0.02, help = 'the initialization gain')
     # Dataset parameters
     parser.add_argument('--baseroot', type = str, default = 'C:/Users/owner/program_myself/pytorch_study/SketchAnimeEdit', help = 'the training folder')
-    parser.add_argument('--img_path', type = str, default = './test_data/')
+    parser.add_argument('--test_img_path', type = str, default = './test_data/')
     parser.add_argument('--saved_path', type = str, default = './saved_paths/')
     parser.add_argument('--img_height', type = int, default = 640, help = 'height of image')
     parser.add_argument('--img_width', type = int, default = 640, help = 'width of image')

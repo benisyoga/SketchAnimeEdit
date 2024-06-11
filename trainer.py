@@ -16,6 +16,7 @@ from mmpose.apis import inference_topdown
 from mmpose.apis import init_model as init_pose_estimator
 
 import train_dataset
+import test_dataset
 import utils
 
 '''
@@ -140,9 +141,11 @@ def trainer(opt):
 
     '''データセットを作成する'''
     train_set = train_dataset.PairImgs(opt)
+    test_set = test_dataset.TestImg(opt)
 
     '''作成したデータセットをデータローダ―に読み込ませる'''
-    train_loader = DataLoader(train_set, batch_size=opt.batch_size, shuffle=True, num_workers=opt.num_workers, pin_memory=True)
+    train_loader = DataLoader(train_set, batch_size=opt.batch_size, shuffle=True,  num_workers=opt.num_workers, pin_memory=True)
+    test_loader =  DataLoader(test_set,  batch_size=opt.batch_size, shuffle=False, num_workers=opt.num_workers, pin_memory=True)
 
     #------------------------------
     #　           訓練
@@ -160,6 +163,10 @@ def trainer(opt):
 
     L1 = nn.L1Loss()
     MSE = nn.MSELoss()
+
+    es_counter = 0
+    es_patience = 50
+    es_best_score = None
 
     '''訓練ループ'''
     for epoch in range(opt.resume_epoch, opt.epochs):
@@ -196,12 +203,16 @@ def trainer(opt):
             mask_out_B, mg_out_A = net_E(img_B, Sketch_A, mask_B)
             _, mg_out_B = net_E(img_A, Sketch_B, mask_A)
 
+            #mask = mask_out_B.detach()
+
+            #'''
             mask = mask_out_B
 
             if flag > epoch / opt.epochs:
                 mask = mask.detach()
             else:
                 mask = (mask>0.5).float().detach()
+            #'''
             
             #first_out_A, second_out_A = net_G(img_B, mask_out_B.detach(), Sketch_A)
             first_out_A, second_out_A = net_G(img_B, mask, Sketch_A)
@@ -264,6 +275,9 @@ def trainer(opt):
 
             second_out_wholeimg_A = img_B * (1 - mask_out_B.detach()) + second_out_A.detach() * mask_out_B
 
+            #img_featuremaps = net_P(img_A)
+            #second_out_featuremaps = net_P(second_out_wholeimg_A)
+
             noise = torch.rand(opt.batch_size, 3, opt.img_height, opt.img_width).cuda()
             #maskedimg_B = img_B * (1 - mask_out_B) + noise * mask_out_B
             maskedimg_B = img_B * (1 - mask) + noise * mask
@@ -286,6 +300,9 @@ def trainer(opt):
             BMRLoss_B2 = L1(img_B, mg_out_wholeimg_B)
             BMRLoss = BMRLoss_A1 + BMRLoss_B1 + BMRLoss_A2 + BMRLoss_B2
 
+            # Perceptual Loss
+            #PLoss = L1(second_out_featuremaps, img_featuremaps)
+
             #kp loss
             #KpLoss = L1(true_kp, fake_kp)
 
@@ -294,36 +311,71 @@ def trainer(opt):
             #loss_train_KP_epoch += KpLoss.item()
 
             # Compute losses
-            loss_E = opt.lambda_l1 * BMRLoss + opt.lambda_gan * GANLoss + opt.lambda_BMR * BMRLoss# + opt.lambda_KP * KpLoss
+            loss_E = opt.lambda_l1 * L1Loss + opt.lambda_gan * GANLoss + opt.lambda_BMR * BMRLoss
             loss_E.backward()
 
             optimizerE.step()
 
-            print("\r [epoch : %d/%d][batch_idx : %d/%d] まで完了" % ((epoch+1), opt.epochs, (batch_idx+1), len(train_loader)), end="")
+            print("\r train [epoch : %d/%d][idx : %d/%d] まで完了" % ((epoch+1), opt.epochs, (batch_idx+1), len(train_loader)), end="")
 
-        loss_train_L1.append(loss_train_L1_epoch/len(train_loader))
-        loss_train_GAN.append(loss_train_GAN_epoch/len(train_loader))
-        loss_train_BMR.append(loss_train_BMR_epoch/len(train_loader))
-        loss_train_P.append((loss_train_P_epoch/len(train_loader))/10)
+        #loss_train_L1.append(loss_train_L1_epoch/len(train_loader))
+        #loss_train_GAN.append(loss_train_GAN_epoch/len(train_loader))
+        #loss_train_BMR.append(loss_train_BMR_epoch/len(train_loader))
+        #loss_train_P.append((loss_train_P_epoch/len(train_loader))/10)
         #loss_train_KP.append((loss_train_P_epoch/len(train_loader))/1000)
-        loss_train_D.append(loss_train_D_epoch/len(train_loader))
+        #loss_train_D.append(loss_train_D_epoch/len(train_loader))
 
         adjust_learning_rate(opt.lr_g, optimizerE, (epoch + 1), opt)
         adjust_learning_rate(opt.lr_g, optimizerG, (epoch + 1), opt)
         adjust_learning_rate(opt.lr_d, optimizerD, (epoch + 1), opt)
 
-        if (epoch + 1) % 50 == 0 or (epoch + 1) < 10:
-            #img_list = [img_B, Sketch_A, mg_out_A, mg_out_wholeimg_A, mask_out_B, maskedimg_B, second_out_A, second_out_wholeimg_A, img_A]
-            img_list = [img_B, Sketch_A, mg_out_A, mg_out_wholeimg_A, mask, maskedimg_B, second_out_A, second_out_wholeimg_A, img_A]
-            name_list = ['input_im', 'input_sk', 'mg_out', 'mg_out_wholeimg', 'mask', 'maskedinput', 'second_out', 'second_out_wholeimg', 'gt']
+        if (epoch + 1) % 50 == 0 or (epoch + 1) <= 10:
+            img_list = [img_B, Sketch_A, mg_out_A, mg_out_wholeimg_A, mask, maskedimg_B, first_out_A, second_out_A, second_out_wholeimg_A, img_A]
+            name_list = ['input_im', 'input_sk', 'mg_out', 'mg_out_wholeimg', 'mask', 'maskedinput', 'first_out', 'second_out', 'second_out_wholeimg', 'gt']
             utils.save_sample_png(sample_folder = sample_folder, sample_name = 'epoch%d' % (epoch + 1), img_list = img_list, name_list = name_list, pixel_max_cnt = 255)
 
-    print("\n")
-    save_model(net_G, (epoch + 1), opt, type='G')
-    save_model(net_D, (epoch + 1), opt, type='D')
-    save_model(net_E, (epoch + 1), opt, type='E')
+        '''
+        total_L1 = 0
+        total_PSNR= 0
+        total_SSIM= 0
+
+        #Test Loop
+        for idx, (input, truth, Sketch, mask) in enumerate(test_loader):
+            input = input.cuda()
+            truth = truth.cuda()
+            Sketch = Sketch.cuda()
+            mask = mask.cuda()
+
+            with torch.no_grad():
+                mask_out, _ = net_E(input, Sketch, mask)
+                mask_out = (mask_out>0.5).float()
+                _, second_out = net_G(input, mask_out, Sketch)
+
+                second_out_wholeimg = input * (1 - mask_out) + second_out * mask_out
+
+                score_L1 = L1(second_out_wholeimg, truth).item()
+
+            total_L1 += score_L1
+
+            print("\r valid [epoch : %d/%d][idx : %d/%d] まで完了" % ((epoch+1), opt.epochs, (idx+1), len(test_loader)), end="")
+
+        if es_best_score is None:
+            es_best_score = total_L1
+        elif total_L1 > es_best_score:
+            es_counter += 1
+            if es_counter >= es_patience:
+                print("\n Early Stoped at epoch%d"% (epoch+1))
+                break
+        else:
+            es_best_score = total_L1
+            es_counter = 0 
+        #'''
+
+        save_model(net_G, (epoch + 1), opt, type='G')
+        save_model(net_D, (epoch + 1), opt, type='D')
+        save_model(net_E, (epoch + 1), opt, type='E')
     
-#'''
+'''
     fig = plt.figure()
     plt.xlabel("Epoch")
     plt.ylabel("Loss")

@@ -15,7 +15,7 @@ class TestImg(Dataset):
     def __init__(self, opt):
         '''画像ペアを入れたディレクトリの親へのパスを指定する'''
         self.opt = opt
-        self.img_paths = opt.img_path
+        self.img_paths = opt.test_img_path
         self.imgs_list = glob.glob(os.path.join(self.img_paths, '*'), recursive=True)
 
     def __getitem__(self, index):

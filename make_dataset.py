@@ -9,12 +9,12 @@ from mmdet.apis import inference_detector, init_detector
 from mmpose.apis import inference_topdown
 from mmpose.apis import init_model as init_pose_estimator
 
-index = '000'
+index = '999'
 
 height = 256
 width = 256
 
-angle = 10.0 # +:/→|    -:\→|
+angle = 0.0 # +:/→|    -:\→|
 scale = 1.0
 
 load_path = './dataset/'+index+'/original/'
@@ -235,7 +235,7 @@ def makeedge():
 
         img = cv2.imread(os.path.join(data_path, filename), cv2.IMREAD_UNCHANGED)
 
-        edge = cv2.Canny(img, 40, 40, L2gradient=True) #(40, 80) or (80, 150)
+        edge = cv2.Canny(img, 40, 80, L2gradient=True) #(40, 80) or (80, 150)
 
         cv2.imwrite(os.path.join(edge_path, filename), edge)
 

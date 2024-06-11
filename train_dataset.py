@@ -16,7 +16,7 @@ class PairImgs(Dataset):
     def __init__(self, opt):
         '''画像ペアを入れたディレクトリの親へのパスを指定する'''
         self.opt = opt
-        self.img_paths = opt.img_path
+        self.img_paths = opt.train_img_path
         self.imgs_list = glob.glob(os.path.join(self.img_paths, '*'), recursive=True)
 
         '''ペア画像が入っているディレクトリのリストを出力'''
